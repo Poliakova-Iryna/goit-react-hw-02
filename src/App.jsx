@@ -1,34 +1,39 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react"
+import Description from "./components/Description/Description";
+import Feedback from "./components/Feedback/Feedback";
+import Options from "./components/Options/Options";
+import Notification from "./components/Notification/Notification";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+ const [feedbackTypeData, setFeedbackTypeData] = useState(() => {
+  const savedFeedback = localStorage.getItem('feedbackTypeData');
+  return savedFeedback ? JSON.parse(savedFeedback) : {good: 0, neutral: 0, bad:0};
+ });
+
+ useEffect(() => {
+  localStorage.setItem("feedbackTypeData", JSON.stringify(feedbackTypeData));
+ }, [feedbackTypeData]);
+
+ const updateFeedback = (feedbackType) => {
+  setFeedbackTypeData((prevFeedback) => ({
+    ...prevFeedback, [feedbackType]: prevFeedback[feedbackType] + 1,
+  }));
+ };
+
+ const resetFeedback = () => {
+  setFeedbackTypeData({good:0, neutral: 0, bad:0});
+ };
+
+ const totalFeedback = feedbackTypeData.good + feedbackTypeData.neutral + feedbackTypeData.bad;
+ const positiveFeedback = Math.round((feedbackTypeData.good / totalFeedback) * 100);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div>
+      <Description />
+      <Options updateFeedback={updateFeedback} totalFeedback={totalFeedback} resetFeedback={resetFeedback}/>
+      {totalFeedback > 0 ? (<Feedback feedbackData={feedbackTypeData} totalFeedback={totalFeedback} positiveFeedback={positiveFeedback}/>) : 
+      (<Notification />)}
+    </div>
   )
 }
 
